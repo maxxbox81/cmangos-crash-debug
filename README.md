@@ -8,6 +8,12 @@ Collection of patch files to prevent known crashes and memory errors in the CMaN
 |------------|-------------|
 | [0001-fix-ObjectGridLoader-LoadHelper-crash.patch](0001-fix-ObjectGridLoader-LoadHelper-crash.patch) | Fixes a potential crash in `LoadHelper` caused by `IsInWorld()` assertion failure |
 
+### ❗ Crash Example
+
+This patch addresses the following crash:
+![Assertion failure part 1](images/Objektgridloadererror_0001_1.png)  
+![Assertion failure part 2](images/Objektgridloadererror_0001_2.png)
+
 ## 💡 Usage
 
 ```bash
