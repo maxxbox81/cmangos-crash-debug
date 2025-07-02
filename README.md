@@ -11,8 +11,8 @@ Collection of patch files to prevent known crashes and memory errors in the CMaN
 ### ❗ Crash Example
 
 This patch addresses the following crash:
-![Assertion failure part 1](images/Objektgridloadererror_0001_1.png)  
-![Assertion failure part 2](images/Objektgridloadererror_0001_2.png)
+![Objektgridloadererror_0001_1](images/Objektgridloadererror_0001_1.png)  
+![Objektgridloadererror_0001_2](images/Objektgridloadererror_0001_2.png)
 
 ## 💡 Usage
 
