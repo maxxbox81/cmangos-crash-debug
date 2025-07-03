@@ -15,3 +15,4 @@ Collection of patch files to prevent known crashes and memory errors in the CMaN
 ```bash
 cd /opt/cmangos/mangos
 git apply /opt/cmangos/mangos/patches/0001-fix-ObjectGridLoader-LoadHelper-crash.patch
+git apply /opt/cmangos/mangos/patches/0002-cxx20-warning-suppress.patch
