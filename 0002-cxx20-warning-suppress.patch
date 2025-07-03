@@ -1,0 +1,108 @@
+From ad492df4820d28cc58aac7a2ee2c9aaf9141ebc8 Mon Sep 17 00:00:00 2001
+From: maxxbox81 <marcel_grimm@web.de>
+Date: Thu, 3 Jul 2025 22:21:50 +0200
+Subject: [PATCH] compiler warnings: suppress known C++20 warnings till fixed
+
+---
+ CMakeLists.txt | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 73944152d..9c3fbce74 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -33,6 +33,27 @@ set(CMAKE_CXX_STANDARD 20)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ set(CMAKE_CXX_EXTENSIONS OFF)
+ 
++# Option to suppress known C++20 warnings till fixed
++option(SUPPRESS_CXX20_DEPRECATED_WARNINGS "Suppress deprecated C++20 warnings (enum conversions, implicit this-capture, enum compare, volatile)" OFF)
++
++if (SUPPRESS_CXX20_DEPRECATED_WARNINGS)
++  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++    add_compile_options(
++      -Wno-deprecated-enum-enum-conversion
++      -Wno-deprecated-enum-float-conversion
++      -Wno-deprecated-this-capture
++      -Wno-enum-compare
++    )
++  elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
++    add_compile_options(
++      -Wno-deprecated-enum-enum-conversion
++      -Wno-deprecated-enum-float-conversion
++      -Wno-volatile
++      -Wno-enum-compare
++    )
++  endif()
++endif()
++
+ # Define here name of the binaries
+ set(CMANGOS_BINARY_SERVER_NAME "mangosd")
+ set(CMANGOS_BINARY_REALMD_NAME "realmd")
+@@ -87,6 +108,45 @@ if(MSVC)
+   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+ endif()
+ 
++# Modules setup
++if(BUILD_MODULES)
++  # Download module config file
++  include(FetchContent)
++
++  FetchContent_Declare(
++    modules
++    GIT_REPOSITORY "https://github.com/davidonete/cmangos-modules.git"
++    GIT_TAG "main"
++  )
++
++  if(NOT modules_POPULATED)
++	message(STATUS "Fetching module configuration...")
++    FetchContent_Populate(modules)
++
++    if(EXISTS ${CMAKE_SOURCE_DIR}/src/modules/modules)
++      file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/src/modules/modules)
++    endif()
++
++    file(COPY ${modules_SOURCE_DIR}/. DESTINATION ${CMAKE_SOURCE_DIR}/src/modules/modules)
++    message(STATUS "Modules configuration fetched and populated in ${CMAKE_CURRENT_SOURCE_DIR}/src/modules/modules")
++
++    # Read module config file
++    file(READ ${CMAKE_SOURCE_DIR}/src/modules/modules/modules.conf MODULE_CONF)
++    string(REGEX REPLACE "\n" ";" MODULE_CONF_LINES "${MODULE_CONF}")
++    set(MODULE_NAMES)
++    set(MODULE_URLS)
++    foreach(MODULE_CONF_LINE ${MODULE_CONF_LINES})
++      string(REGEX MATCH "([^=]+)=(.*)" _ ${MODULE_CONF_LINE})
++      set(KEY ${CMAKE_MATCH_1})
++      set(VALUE ${CMAKE_MATCH_2})
++      if(NOT KEY STREQUAL "" OR NOT VALUE STREQUAL "")
++        list(APPEND MODULE_NAMES ${KEY})
++        list(APPEND MODULE_URLS ${VALUE})
++      endif()
++    endforeach()
++  endif()
++endif()
++
+ # set default buildoptions and print them
+ include(cmake/options.cmake)
+ 
+@@ -341,6 +401,17 @@ if(BUILD_PLAYERBOTS)
+   endif()
+ endif()
+ 
++if(BUILD_MODULES AND NOT BUILD_GAME_SERVER)
++  set(BUILD_MODULES OFF)
++  message(STATUS "BUILD_MODULES forced to OFF due to BUILD_GAME_SERVER is not set")
++endif()
++
++if(NOT BUILD_MODULES)
++  if(EXISTS ${CMAKE_SOURCE_DIR}/src/modules/modules)
++    file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/src/modules/modules)
++  endif()
++endif()
++
+ if(PCH)
+   if(${CMAKE_VERSION} VERSION_LESS "3.16")
+     message("PCH is not supported by your CMake version")
+-- 
+2.39.5
+
